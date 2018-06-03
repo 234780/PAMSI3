@@ -195,24 +195,24 @@ int AlfaBeta(char* tablicagry, int rozmiar, char gracz, int alfa, int beta){
   int r, x;
   int pomoc;
 
-  //ocena gry
-  if(CzyWygrana(tablicagry, rozmiar, gracz, true)){
+    //sprawdzamy czy koniec rozgrywki
+    if(CzyWygrana(tablicagry, rozmiar, gracz, true)){
+      if(gracz=='X')
+	return 1;
+      else
+	return -1;
+    }
+
+    if(CzyRemis(tablicagry, rozmiar, true))
+      return 0;
+
+    // gramy dalej?
+
+    //zamiana graczy
     if(gracz=='X')
-      return 1;
+      gracz='O';
     else
-      return -1;
-  }
-
-  if(CzyRemis(tablicagry, rozmiar, true))
-    return 0;
-  
-  //gramy dalej?
-  //zamiana gracza
-
-  if(gracz=='X')
-    gracz='O';
-  else
-    gracz='X';
+      gracz='X';
 
   
   if(gracz=='X'){// ruch komputera
@@ -243,27 +243,31 @@ int AlfaBeta(char* tablicagry, int rozmiar, char gracz, int alfa, int beta){
       }
     }
   }
-  cout<<r<<endl;
   return r;
 }
 
-int RuchKomputera(char* tablicagry, int rozmiar){
-  int ruch, i, wynik, max;
-  max = -10;
 
+int RuchKomputera(char* tablicagry, int rozmiar){
+  int ruch, i, wynik;
+  int max;
+  max=-10;
+  //max = -INFINITY;
+
+  
   for(i = 1; i < rozmiar*rozmiar+1; i++){
     if(tablicagry[i] == ' '){
       tablicagry[i] = 'X';
-       wynik=AlfaBeta(tablicagry, rozmiar, 'X', INFINITY, -INFINITY);
-       // wynik = MiniMax(tablicagry, rozmiar,'X');
+      wynik=AlfaBeta(tablicagry, rozmiar, 'X', -INFINITY, INFINITY);
+      //wynik = MiniMax(tablicagry, rozmiar,'X');
       tablicagry[i] = ' ';
       if(wynik > max){
-        max = wynik;
-	ruch = i;
+	max = wynik;
+      	ruch = i;
       }
     }
   }//koniec for
-  return ruch;
+  
+return ruch;
 }
 
 
@@ -286,7 +290,7 @@ void Ruch(char* tablicagry, int rozmiar, char &gracz){
 
 
 int main(){
-  int rozmiar=3;
+  int rozmiar=4;
   char* tablicagry;
   char gracz,wybor;
   int i;
