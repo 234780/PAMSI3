@@ -1,29 +1,25 @@
 #include <iostream>
 #include <stdlib.h>
+#include "kolko_i_krzyzyk.hh"
 #define INFINITY 2147483647 
 using namespace std;
 
-void plansza(char* tablicagry, int rozmiar){
+void KolkoIKrzyzyk::RysujPlansze(){
   int i, j;
-  int ile;
-
-  if(rozmiar<5)
-    ile=rozmiar;
-  else
-    ile=5;
   cout <<endl<<endl;
   cout<<"-------------------------------------------------------------"<<endl;
   cout<<"-----------------------KOLKO I KRZYZYK-----------------------"<<endl;
   cout<<"------------------ X - KOMPUTER, O - GRACZ ------------------"<<endl;
   cout<<"-------------------------------------------------------------"<<endl;
-  if(ile==1)
-  cout<<"----------ABY WYGRAC MUSISZ ULOZYC "<<ile<<" ZNAK W RZEDZIE----------"<<endl;
-  else if(ile<5)
-    cout<<"----------ABY WYGRAC MUSISZ ULOZYC "<<ile<<" ZNAKI W RZEDZIE---------"<<endl;
+  if(ile_zeby_wygrac==1)
+    cout<<"----------ABY WYGRAC MUSISZ ULOZYC "<<ile_zeby_wygrac<<" ZNAK W RZEDZIE----------"<<endl;
+  else if(ile_zeby_wygrac<5)
+    cout<<"----------ABY WYGRAC MUSISZ ULOZYC "<<ile_zeby_wygrac<<" ZNAKI W RZEDZIE---------"<<endl;
   else
-    cout<<"---------ABY WYGRAC MUSISZ ULOZYC "<<ile<<" ZNAKOW W RZEDZIE---------"<<endl;
+    cout<<"---------ABY WYGRAC MUSISZ ULOZYC "<<ile_zeby_wygrac<<" ZNAKOW W RZEDZIE---------"<<endl;
   cout<<"-------------------------------------------------------------"<<endl<<endl;
-  for(i = 0; i <= rozmiar*rozmiar; i++){
+  
+  for(i = 1; i <= rozmiar*rozmiar+1; i++){
     cout<<" "<<tablicagry[i]<<" ";
     if(i % rozmiar)
       cout << "|";
@@ -32,26 +28,20 @@ void plansza(char* tablicagry, int rozmiar){
       for(j=0; j<rozmiar;  j++)
 	cout<<"--- ";
       cout<<endl;
-	  }
+    }
     else
       cout<<endl<<endl<<endl;  
   }    
 }
 
-bool CzyWygrana(char* tablicagry, int rozmiar,  char gracz, bool cisza){
+bool KolkoIKrzyzyk::CzyWygrana(char gracz, bool cisza){
   bool test;
   int i,k,j;
-  int ile_zeby_wygrac;
   int ilezliczono=0;
-
-  if(rozmiar<5)
-    ile_zeby_wygrac=rozmiar;
-  else
-    ile_zeby_wygrac=5;
 
   test = false;
 
-// Sprawdzamy wiersze
+  // Sprawdzamy wiersze
   for(k=0; k<rozmiar; k++){ // iterujemy wiersze
     for(i=k*rozmiar+1; i<k*rozmiar+rozmiar-ile_zeby_wygrac+2;i++){//start
       for(j=0; j<ile_zeby_wygrac;j++){
@@ -65,7 +55,7 @@ bool CzyWygrana(char* tablicagry, int rozmiar,  char gracz, bool cisza){
     }
   }
   
-// Sprawdzamy kolumny
+  // Sprawdzamy kolumny
   if(test==false){
     for(i=1; i<rozmiar*(rozmiar-ile_zeby_wygrac+1)+1; i++){
       for(j=0; j<ile_zeby_wygrac; j++){
@@ -93,7 +83,7 @@ bool CzyWygrana(char* tablicagry, int rozmiar,  char gracz, bool cisza){
     }
   }
 
-// Sprawdzamy przekątną lewo w dol
+  // Sprawdzamy przekątną lewo w dol
   if(test==false){
     for(k=0; k<rozmiar-ile_zeby_wygrac+1;k++){//wiersz
       for(i=k*rozmiar+ile_zeby_wygrac; i<k*rozmiar+rozmiar+1; i++){//start
@@ -110,9 +100,9 @@ bool CzyWygrana(char* tablicagry, int rozmiar,  char gracz, bool cisza){
   }
 
   if(test==true){
-    if(!cisza){
+    if(cisza==false){
       system("clear");
-      plansza(tablicagry,rozmiar);
+      RysujPlansze();
       cout << "\nGRACZ " << gracz << " WYGRYWA!!!\n\n";
     }
     return true;
@@ -120,108 +110,107 @@ bool CzyWygrana(char* tablicagry, int rozmiar,  char gracz, bool cisza){
   return false;
 }
 
-bool CzyRemis(char* tablicagry, int rozmiar,  bool cisza){
+bool KolkoIKrzyzyk::CzyRemis(bool cisza){
   int i;
   
   for(i=1; i<rozmiar*rozmiar+1; i++)
     if(tablicagry[i]==' ')
-      return false;
+      return false; // jest puste pole?
 
 
-  if(!cisza){
+  if(cisza==false){ //jesli ma byc odzew
     system("clear");
-    plansza(tablicagry,rozmiar); cout << "\nREMIS !!!\n\n";
+    RysujPlansze();
+    cout << "\nREMIS !!!\n\n";
   }
-  return true;     
+  return true;     // wszystkie pola juz zajete? REMIS!
 }
 
 
-int MiniMax(char* tablicagry, int rozmiar, char gracz){
+int KolkoIKrzyzyk::MiniMax(char gracz){
   int min=10;//cos wiekszego niz zwraca minimax
   int max=-10;//cos mniejszego niz zwraca minimax
   int wynik; //to, co zwraca minimax
-    int i;
+  int i;
 
-    //sprawdzamy czy koniec rozgrywki
-    if(CzyWygrana(tablicagry, rozmiar, gracz, true)){
-      if(gracz=='X')
-	return 1;
-      else
-	return -1;
-    }
-
-    if(CzyRemis(tablicagry, rozmiar, true))
-      return 0;
-
-    // gramy dalej?
-
-    //zamiana graczy
-    if(gracz=='X')
-      gracz='O';
+  //sprawdzamy czy koniec rozgrywki
+  if(CzyWygrana(gracz, true)){
+    if(gracz=='X') 
+      return 1;
     else
-      gracz='X';
-
-    
-    if(gracz=='X'){//jesli ruch komputera
-      for(i=1; i<rozmiar*rozmiar+1;i++){
-	if(tablicagry[i]==' '){
-	  tablicagry[i]=gracz;
-	  wynik=MiniMax(tablicagry, rozmiar, gracz);
-	  tablicagry[i]=' ';
-	  if(wynik>max)
-	    max=wynik;
-	}
-      }
-      return max;
-    }
-    else{//ruch czlowieka
-      for(i=1; i<rozmiar*rozmiar+1; i++){
-	if(tablicagry[i]==' '){
-	  tablicagry[i]=gracz;
-	  wynik=MiniMax(tablicagry, rozmiar, gracz);
-	  tablicagry[i]=' ';
-	  if(wynik<min)
-	    min=wynik;
-	}
-      }
-      return min;
-    }
-
-    
+      return -1;
   }
 
-int AlfaBeta(char* tablicagry, int rozmiar, char gracz, int alfa, int beta){
+  if(CzyRemis(true))
+    return 0;
+
+  // gramy dalej?
+
+  //zamiana graczy
+  if(gracz=='X')
+    gracz='O';
+  else
+    gracz='X';
+
+    
+  if(gracz=='X'){//jesli ruch komputera, maksymalizujemy wynik
+    for(i=1; i<rozmiar*rozmiar+1;i++){
+      if(tablicagry[i]==' '){
+	tablicagry[i]=gracz;
+	wynik=MiniMax(gracz);
+	tablicagry[i]=' ';
+	if(wynik>max)
+	  max=wynik;
+      }
+    }
+    return max;
+  }
+  else{//ruch czlowieka, minimalizujemy wynik
+    for(i=1; i<rozmiar*rozmiar+1; i++){
+      if(tablicagry[i]==' '){
+	tablicagry[i]=gracz;
+	wynik=MiniMax(gracz);
+	tablicagry[i]=' ';
+	if(wynik<min)
+	  min=wynik;
+      }
+    }
+    return min;
+  } 
+}
+
+int KolkoIKrzyzyk::AlfaBeta(char gracz, int alfa, int beta){
   int i;
   int r, x;
   int pomoc;
 
-    //sprawdzamy czy koniec rozgrywki
-    if(CzyWygrana(tablicagry, rozmiar, gracz, true)){
-      if(gracz=='X')
-	return 1;
-      else
-	return -1;
-    }
-
-    if(CzyRemis(tablicagry, rozmiar, true))
-      return 0;
-
-    // gramy dalej?
-
-    //zamiana graczy
+  //sprawdzamy czy koniec rozgrywki
+  if(CzyWygrana(gracz, true)){
     if(gracz=='X')
-      gracz='O';
+      return 1;
     else
-      gracz='X';
+      return -1;
+  }
+
+  if(CzyRemis(true))
+    return 0;
+
+  // gramy dalej?
+
+  //zamiana graczy
+  if(gracz=='X')
+    gracz='O';
+  else
+    gracz='X';
 
   
   if(gracz=='X'){// ruch komputera
-    r=-INFINITY;
+    r=-INFINITY; // ta nieskonczonosc mi sie nie podoba :(
     for(i=1; i<rozmiar*rozmiar+1;i++){
       if(tablicagry[i]==' '){
 	tablicagry[i]=gracz;
 	pomoc=max(r, alfa);
-	x=AlfaBeta(tablicagry, rozmiar,gracz, pomoc, beta);
+	x=AlfaBeta(gracz, pomoc, beta);
 	tablicagry[i]=' ';
 	if(x>=beta)
 	  return x;
@@ -230,12 +219,12 @@ int AlfaBeta(char* tablicagry, int rozmiar, char gracz, int alfa, int beta){
     }
   }
   else{//ruch czlowieka
-    r=INFINITY;
+    r=INFINITY; // ta tez...
     for(i=1; i<rozmiar*rozmiar+1;i++){
       if(tablicagry[i]==' '){
 	tablicagry[i]=gracz;
 	pomoc=min(r, beta);
-	x=AlfaBeta(tablicagry,rozmiar,gracz, alfa, pomoc);
+	x=AlfaBeta(gracz, alfa, pomoc);
 	tablicagry[i]=' ';
 	if(x<=alfa)
 	  return x;
@@ -247,7 +236,7 @@ int AlfaBeta(char* tablicagry, int rozmiar, char gracz, int alfa, int beta){
 }
 
 
-int RuchKomputera(char* tablicagry, int rozmiar){
+int KolkoIKrzyzyk::RuchKomputera(){
   int ruch, i, wynik;
   int max;
   max=-10;
@@ -257,8 +246,8 @@ int RuchKomputera(char* tablicagry, int rozmiar){
   for(i = 1; i < rozmiar*rozmiar+1; i++){
     if(tablicagry[i] == ' '){
       tablicagry[i] = 'X';
-      wynik=AlfaBeta(tablicagry, rozmiar, 'X', -INFINITY, INFINITY);
-      //wynik = MiniMax(tablicagry, rozmiar,'X');
+      wynik=AlfaBeta('X', -INFINITY, INFINITY);
+      // wynik = MiniMax('X');
       tablicagry[i] = ' ';
       if(wynik > max){
 	max = wynik;
@@ -267,48 +256,59 @@ int RuchKomputera(char* tablicagry, int rozmiar){
     }
   }//koniec for
   
-return ruch;
+  return ruch;
 }
 
 
-void Ruch(char* tablicagry, int rozmiar, char &gracz){
+void KolkoIKrzyzyk::Ruch(char &gracz){
   int ruch;
   system("clear");
-  plansza(tablicagry,rozmiar);
+  RysujPlansze();
   if(gracz == 'O'){ //kolej czlowieka
     cout << "\nRuch: ";
     cin >> ruch;
   }
   else{ // kolej komputera
-    ruch = RuchKomputera(tablicagry, rozmiar);
+    ruch = RuchKomputera();
   }
-  cout << "---------------------------\n\n";
-  if((ruch >= 1) && (ruch < rozmiar*rozmiar+1) && (tablicagry[ruch] == ' ')) tablicagry[ruch] = gracz;
+  
+  if((ruch >= 1) && (ruch < rozmiar*rozmiar+1) && (tablicagry[ruch] == ' '))
+    tablicagry[ruch] = gracz;
   gracz = (gracz == 'O') ? 'X' : 'O';
 }
 
-
-
-int main(){
-  int rozmiar=4;
-  char* tablicagry;
-  char gracz,wybor;
+KolkoIKrzyzyk::KolkoIKrzyzyk(int rozm, int ile){
   int i;
+  
+  rozmiar=rozm;
+  ile_zeby_wygrac=ile;
 
   tablicagry=new char[rozmiar*rozmiar+1];
-  
-  do{
-    for(i = 1; i < rozmiar*rozmiar+1; i++)
-      tablicagry[i] = ' ';
-    gracz = 'O';
-    
-    while(!CzyWygrana(tablicagry,rozmiar,'X',false) && !CzyWygrana(tablicagry,rozmiar,'O',false) && !CzyRemis(tablicagry, rozmiar,false)){
-      Ruch(tablicagry, rozmiar,gracz);
-    }
-    
-    cout << "Jeszcze raz ? (T = TAK) : ";
-    cin >> wybor; 
-    cout << "\n\n\n";
-
-  } while((wybor == 'T') || (wybor == 't'));
+  for(i=0; i<rozmiar*rozmiar+1; i++)
+    tablicagry[i]=' ';
 }
+
+void KolkoIKrzyzyk::CzyscPlansze(){
+  int i;
+  for (i=0; i<rozmiar*rozmiar+1; i++)
+    tablicagry[i]=' ';
+}
+
+void KolkoIKrzyzyk::ObslugaGry(){
+  char wybor;
+  char gracz;
+
+  do {
+    gracz='O'; //zawsze zaczyna czlowiek
+    CzyscPlansze();
+    while(!CzyWygrana('X', false) && !CzyWygrana('O', false) && !CzyRemis(false))
+      Ruch(gracz);
+   
+    cout<<"Jeszcze raz? (T=TAK) ";
+    cin>>wybor;
+   
+   
+  } while((wybor=='T')||(wybor=='t'));
+ 
+}
+
